@@ -7,6 +7,18 @@ function newLabel(x) {
   return String(x)+myCounter++;
 }
 
+function binary(x,y,op) {
+  return x+" "+y+"\t"+op+"\n";
+}
+
+function unary(x) {
+  return "\t"+x+"\n";
+}
+
+function label(x) {
+  return ":"+x+"\n"; 
+}
+
 %}
 
 /* operator associations and precedence */
@@ -51,49 +63,52 @@ s
         { 
           var endif = newLabel('endif');
           $$ = $e+
-               "jmpz "+endif+"\n"+
+               unary("jmpz "+endif)+
                $s+
-               ":"+endif+"\n"; 
+               label(endif); 
         }
     | IF e THEN s ELSE s
         { 
           var lendif = newLabel('endif');
           var lelse  = newLabel('else');
           $$ = $e+
-               "jmpz "+lelse+"\n"+
+               unary("jmpz "+lelse)+
                $s1+
-               "jmp "+lendif+"\n"+
-               ":"+lelse+"\n"+
+               unary("jmp "+lendif)+
+               label(lelse)+
                $s2+
-               ":"+lendif+"\n"; 
+               label(lendif); 
         }
     ;
 
 e
     : ID '=' e
-        { $$ = $e+
-               "\t"+$ID+"\n"+
-               "\t=\n"; 
-        }
+        {$$ = binary($3,unary($1), "=");}
     | PI '=' e 
         { throw new Error("Can't assign to constant 'π'"); }
     | E '=' e 
         { throw new Error("Can't assign to math constant 'e'"); }
     | e '<=' e
-        {$$ = $1+" "+$3+"\t<=\n";}
+        {$$ = binary($1,$3, "<=");}
     | e '>=' e
-        {$$ = $1+" "+$3+"\t>=\n";}
+        {$$ = binary($1,$3, ">=");}
     | e '==' e
-        {$$ = $1+" "+$3+"\t==\n";}
+        {$$ = binary($1,$3, "==");}
     | e '+' e
-        {$$ = $1+" "+$3+"\t+\n";}
+        {$$ = binary($1,$3, "+");}
+    | e '*' e
+        {$$ = binary($1,$3, "*");}
+    | e '/' e
+        {$$ = binary($1,$3, "/");}
+    | '(' e ')'
+        {$$ = $2;}
     | NUMBER
-        {$$ = "\t"+$NUMBER+"\n";}
+        {$$ = unary($NUMBER);}
     | E
-        {$$ = "\t"+Math.E+"\n";}
+        {$$ = unary(Math.E);}
     | PI
-        {$$ = "\t"+Math.PI+"\n";}
+        {$$ = unary(Math.PI);}
     | ID 
-        {$$ = "\t"+$ID+"\n";}
+        {$$ = unary($ID);}
     ;
 
