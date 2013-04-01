@@ -1,0 +1,15 @@
+Simple example in the client using jison.
+Uses jquery. Be sure you modify "main.js" so
+that "jquery.js" is found.
+
+run "rake" to produce "calculator.js"
+
+Contents of ~/bin/jsbeautify:
+
+node ~/node_modules/beautifier/bin/beautifier.js $1
+
+install package:
+  sudo npm install beautifier
+
+  more about beautifier:
+  https://github.com/rickeyski/node-beautifier
