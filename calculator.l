@@ -1,6 +1,7 @@
 /* lexical grammar */
 %{
-var reserved_words ={ IF: 'IF', THEN: 'THEN', PI: 'PI', E : 'E'}
+var reserved_words ={ IF: 'IF', THEN: 'THEN', ELSE: 'ELSE', 
+                      PI: 'PI', E : 'E'}
 
 function idORrw(x) {
   return (x.toUpperCase() in reserved_words)? x.toUpperCase() : 'ID'

@@ -56,6 +56,17 @@ s
                ":"+endif+"\n"; 
         }
     | IF e THEN s ELSE s
+        { 
+          var lendif = newLabel('endif');
+          var lelse  = newLabel('else');
+          $$ = $e+
+               "jmpz "+lelse+"\n"+
+               $s1+
+               "jmp "+lendif+"\n"+
+               ":"+lelse+"\n"+
+               $s2+
+               ":"+lendif+"\n"; 
+        }
     ;
 
 e
