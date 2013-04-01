@@ -1,10 +1,27 @@
-/* description: Parses end executes mathematical expressions. */
+/* description: Translates infix expressions to postfix. */
 
 %{
 
 var myCounter = 0;
 function newLabel(x) {
   return String(x)+myCounter++;
+}
+
+function translateIf(e, s) {
+  var endif = newLabel('endif');
+  return e+unary("jmpz "+endif)+s+label(endif); 
+}
+
+function translateIfElse(e, s1, s2) {
+  var lendif = newLabel('endif');
+  var lelse  = newLabel('else');
+  return (e+
+       unary("jmpz "+lelse)+
+       s1+
+       unary("jmp "+lendif)+
+       label(lelse)+
+       s2+
+       label(lendif)); 
 }
 
 function binary(x,y,op) {
@@ -60,25 +77,9 @@ s
     : /* empty */
     | e
     | IF e THEN s
-        { 
-          var endif = newLabel('endif');
-          $$ = $e+
-               unary("jmpz "+endif)+
-               $s+
-               label(endif); 
-        }
+        { $$ = translateIf($e, $s); }
     | IF e THEN s ELSE s
-        { 
-          var lendif = newLabel('endif');
-          var lelse  = newLabel('else');
-          $$ = $e+
-               unary("jmpz "+lelse)+
-               $s1+
-               unary("jmp "+lendif)+
-               label(lelse)+
-               $s2+
-               label(lendif); 
-        }
+        { $$ = translateIfElse($e, $s1, $s2); }
     ;
 
 e
