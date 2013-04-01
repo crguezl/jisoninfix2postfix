@@ -74,7 +74,7 @@ expressions
     ;
 
 s
-    : /* empty */
+    : /* empty */ { $$ = ''; }
     | e
     | IF e THEN s
         { $$ = translateIf($e, $s); }
