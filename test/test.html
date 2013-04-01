@@ -15,14 +15,21 @@
     <script type="text/javascript" src="assert.js"></script>
     
     <script type="text/javascript">
+
       var r = calculator.parse("a = 4*8");
-      assert(32 == r[1]['a'], "a is 4*8");
-      assert(32 == r[0][0], "32 == 4*8");
-      r = calculator.parse("a = 4;\nb=a+1;\nc=b*2");
-      assert(4 == r[0][0], "4 is the first computed result ");
-      assert(4 == r[1]['a'], "a is 4");
-      assert(5 == r[1]['b'], "b is 5");
-      assert(10 == r[1]['c'], "c is 10");
+      assert( /4\s*8\s*[*]\s*a\s*=\s*/.exec(r), "a is 4*8");
+      
+      r = calculator.parse("a=4;b=a+1");
+      r = r.replace(/\s+/g,'');
+      var expected = "4a=a1+b=";
+      assert( r == expected, "a = 4;\nb=a+1 translated");
+
+
+      var r = calculator.parse("if a > 0 then b = 1 else b = 2");
+      r = r.replace(/\s+/g,'');
+      expected = "a 0 > jmpz else1 1 b = jmp endif0 :else1 2 b = :endif0".
+                 replace(/\s+/g,'');
+      assert( r == expected, "'if a > 0 then b = 1 else b = 2' translated");
     </script>
       See the NetTuts+ tutorial at <a href="http://net.tutsplus.com/tutorials/javascript-ajax/quick-tip-quick-and-easy-javascript-testing-with-assert/">Quick and Easy JavaScript Testing</a>
   </body>
