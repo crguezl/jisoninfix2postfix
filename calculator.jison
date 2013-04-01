@@ -2,10 +2,17 @@
 
 %{
 
+var myCounter = 0;
+function newLabel(x) {
+  return String(x)+myCounter++;
+}
+
 %}
 
 /* operator associations and precedence */
 
+%left THEN
+%right ELSE
 %right '='
 %left '<' '<=' '>' '>=' '=='
 %left '+' '-'
@@ -23,7 +30,7 @@ prog
         { 
           $$ = $1; 
           console.log($$);
-          return $$;
+          return $$.join("");
         }
     ;
 
@@ -40,28 +47,42 @@ expressions
 s
     : /* empty */
     | e
+    | IF e THEN s
+        { 
+          var endif = newLabel('endif');
+          $$ = $e+
+               "jmpz "+endif+"\n"+
+               $s+
+               ":"+endif+"\n"; 
+        }
+    | IF e THEN s ELSE s
     ;
 
 e
     : ID '=' e
-        { $$ = $e+" "+$ID+" ="; }
+        { $$ = $e+
+               "\t"+$ID+"\n"+
+               "\t=\n"; 
+        }
     | PI '=' e 
         { throw new Error("Can't assign to constant 'π'"); }
     | E '=' e 
         { throw new Error("Can't assign to math constant 'e'"); }
     | e '<=' e
-        {$$ = $1+" "+$3+" <=";}
+        {$$ = $1+" "+$3+"\t<=\n";}
     | e '>=' e
-        {$$ = $1+" "+$3+" >=";}
+        {$$ = $1+" "+$3+"\t>=\n";}
     | e '==' e
-        {$$ = $1+" "+$3+" ==";}
+        {$$ = $1+" "+$3+"\t==\n";}
     | e '+' e
-        {$$ = $1+" "+$3+" +";}
+        {$$ = $1+" "+$3+"\t+\n";}
     | NUMBER
+        {$$ = "\t"+$NUMBER+"\n";}
     | E
-        {$$ = Math.E;}
+        {$$ = "\t"+Math.E+"\n";}
     | PI
-        {$$ = Math.PI;}
+        {$$ = "\t"+Math.PI+"\n";}
     | ID 
+        {$$ = "\t"+$ID+"\n";}
     ;
 
