@@ -1,4 +1,4 @@
-PL Grado ETSII ULL Lab: Infox to Postfix translator. 
+PL Grado ETSII ULL Lab: Infix to Postfix translator. 
 Includes if the else statements.
 
 Simple example in the client using jison.
