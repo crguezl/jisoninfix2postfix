@@ -9,31 +9,43 @@ function newLabel(x) {
 
 function translateIf(e, s) {
   var endif = newLabel('endif');
-  return e+unary("jmpz "+endif)+s+label(endif); 
+  return e+unary("jmpz "+endif, 'jump')+s+label(endif, 'jump'); 
 }
 
 function translateIfElse(e, s1, s2) {
   var lendif = newLabel('endif');
   var lelse  = newLabel('else');
   return (e+
-       unary("jmpz "+lelse)+
+       unary("jmpz "+lelse,'jump')+
        s1+
-       unary("jmp "+lendif)+
-       label(lelse)+
+       unary("jmp "+lendif,'jump')+
+       label(lelse, 'jump')+
        s2+
-       label(lendif)); 
+       label(lendif, 'jump')); 
 }
 
 function binary(x,y,op) {
   return x+" "+y+"\t"+op+"\n";
 }
 
-function unary(x) {
-  return "\t"+x+"\n";
+function unary(x, cl) {
+  var pr = ''; 
+  var po = '';
+  if (cl) {
+    pr = "<span class='"+cl+"'>";
+    po = "</span>";
+  }
+  return "\t"+pr+x+po+"\n";
 }
 
-function label(x) {
-  return ":"+x+"\n"; 
+function label(x, cl) {
+  var pr = ''; 
+  var po = '';
+  if (cl) {
+    pr = "<span class='"+cl+"'>";
+    po = "</span>";
+  }
+  return pr+":"+x+po+"\n"; 
 }
 
 %}

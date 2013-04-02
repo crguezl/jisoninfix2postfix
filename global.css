@@ -29,9 +29,9 @@ table.center { margin-left:auto; margin-right:auto; }
 #result      { border-color: red; }
 .error       { font-family: terminal; background-color: red; }
 pre.output   { background-color: white; }
-span.repeated { background-color: red }
-span.header { background-color: blue }
-span.comments { background-color: orange }
+td           { background-color: #b0c4de; }
+span.header  { background-color: blue }
+span.jump    { background-color: orange }
 span.blanks { background-color: green }
 span.nameEqualValue { background-color: cyan }
 span.error { background-color: red }
