@@ -52,10 +52,12 @@ function label(x, cl) {
 
 /* operator associations and precedence */
 
+/*
 %left THEN
 %right ELSE
+*/
 %right '='
-%left '<' '<=' '>' '>=' '=='
+%left '<' '<=' '>' '>=' '==' '!='
 %left '+' '-'
 %left '*' '/'
 %left '^'
