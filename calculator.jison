@@ -2,6 +2,8 @@
 
 %{
 
+var symbolTable = {};
+
 var myCounter = 0;
 function newLabel(x) {
   return String(x)+myCounter++;
@@ -48,39 +50,77 @@ function label(x, cl) {
   return pr+":"+x+po+"\n"; 
 }
 
+function functionCall(name, arglist) {
+  return arglist.join('')+unary(name)+unary("call");
+}
+
 %}
 
 /* operator associations and precedence */
 
-/*
+%token IF ELSE THEN DEF PI E ID NUMBER EOF
+
+%nonassoc ID
+%nonassoc "("
+
 %left THEN
 %right ELSE
-*/
-%right '='
-%left '<' '<=' '>' '>=' '==' '!='
-%left '+' '-'
-%left '*' '/'
-%left '^'
-%left '!'
-%right '%'
+
+%right "="
+%left "<=" ">=" "==" "!=" "<" ">" 
+%left "+" "-"
+%left "*" "/"
+%left "^"
+%left "!"
+%right "%"
 %left UMINUS
 
 %start prog
 
 %% /* language grammar */
 prog
-    : expressions EOF
+    : decs statements EOF
         { 
-          $$ = $1; 
-          console.log($$);
-          return $$.join("");
+          var decs = $decs.join('');
+          var sts = label("main:",'jump')+$statements.join("");
+          console.log(decs);
+          console.log(sts);
+          return decs+sts;
         }
     ;
 
-expressions
+decs
+    : /* empty */ { $$ = []; }
+    | decs dec    { $$ = $1; $$.push($2); }
+    ;
+
+dec 
+    : DEF ID optparameters "{" statements "}" { 
+                                   var p = '';
+                                   for (i in $optparameters) {
+                                     p += unary('param '+$optparameters[i]); 
+                                   }
+                                   $$ = label('function_'+$ID, 'jump')+
+                                   p+
+                                   $statements.join('')+unary('return', 'jump'); 
+                                }
+    ;
+
+optparameters
+    : /* empty */            { $$ = []; }
+    | parameters
+    | "(" parameters ")"     { $$ = $parameters; }
+    ;
+        
+parameters
+    : ID                      { $$ = [ $ID ]; }
+    | parameters "," ID       { $$ = $1; $$.push($ID); }
+    ;
+
+statements
     : s  
         { $$ = $1? [ $1 ] : []; }
-    | expressions ';' s
+    | statements ";" s
         { $$ = $1;
           if ($3) $$.push($3); 
           console.log($$);
@@ -97,30 +137,35 @@ s
     ;
 
 e
-    : ID '=' e
-        {$$ = binary($3,unary($1), "=");}
-    | PI '=' e 
+    : ID "=" e
+        { 
+           symbolTable[$ID] = "VAR"; 
+           $$ = binary($3,unary("&"+$1), "=");
+        }
+    | PI "=" e 
         { throw new Error("Can't assign to constant 'π'"); }
-    | E '=' e 
+    | E "=" e 
         { throw new Error("Can't assign to math constant 'e'"); }
-    | e '<=' e
+    | e "<=" e
         {$$ = binary($1,$3, "<=");}
-    | e '>=' e
+    | e ">=" e
         {$$ = binary($1,$3, ">=");}
-    | e '<' e
+    | e "<" e
         {$$ = binary($1,$3, "<");}
-    | e '>' e
+    | e ">" e
         {$$ = binary($1,$3, ">");}
-    | e '==' e
+    | e "==" e
         {$$ = binary($1,$3, "==");}
-    | e '+' e
+    | e "+" e
         {$$ = binary($1,$3, "+");}
-    | e '*' e
+    | e "*" e
         {$$ = binary($1,$3, "*");}
-    | e '/' e
+    | e "/" e
         {$$ = binary($1,$3, "/");}
-    | '(' e ')'
+    | "(" e ")"
         {$$ = $2;}
+    | ID "(" optarglist ")"
+        { $$ = functionCall($ID, $optarglist); }
     | NUMBER
         {$$ = unary($NUMBER);}
     | E
@@ -131,3 +176,12 @@ e
         {$$ = unary($ID);}
     ;
 
+optarglist 
+    : /* empty */  {  $$ = []; }
+    | arglist      
+    ;
+
+arglist
+    : e               { $$ = [ $e ]; }
+    | arglist ',' e   { $$ = $arglist; $$.push($e); }
+    ;

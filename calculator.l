@@ -1,6 +1,7 @@
 /* lexical grammar */
 %{
-var reserved_words ={ IF: 'IF', THEN: 'THEN', ELSE: 'ELSE', 
+var reserved_words ={ DEF: 'DEF',
+                      IF: 'IF', THEN: 'THEN', ELSE: 'ELSE', 
                       PI: 'PI', E : 'E'}
 
 function idORrw(x) {
@@ -19,7 +20,7 @@ function idORrw(x) {
    http://zaach.github.com/jison/docs/#lexical-analysis
 */
                                  }
-[-*+/^!%=();<>]                  return yytext;
+[-*+/^!%=(),;<>{}]                return yytext;
 <<EOF>>                          return 'EOF'
 .                                return 'INVALID'
 

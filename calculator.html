@@ -16,9 +16,9 @@
         <tr>
           <td>
             <textarea id="input" autofocus cols = "40" rows = "5">
-a = (2+5)*3;
-if a == 0 then b = 5 else b = 3;
-c = b + 1;
+def f(x,y) { (x+5)*y; }
+  if a == 0 then b = f(a,3) else b = 3;
+  c = b + 1;
             </textarea> 
           </td>
           <td class="output">
@@ -27,10 +27,10 @@ c = b + 1;
 </span> <!-- Output goes here! -->
             </pre>
           </td>
+          <td><button id="eval" type="button">eval</button></td>
         </tr>
       </table>
       </p>
-      <button id="eval" type="button">eval</button><br>
     </div>
   </body>
 </html>
