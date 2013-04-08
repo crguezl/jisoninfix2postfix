@@ -51,7 +51,7 @@ function label(x, cl) {
 }
 
 function functionCall(name, arglist) {
-  return arglist.join('')+unary(name)+unary("call");
+  return arglist.join('')+unary(name)+unary("call","jump");
 }
 
 %}
@@ -100,7 +100,7 @@ dec
                                    for (i in $optparameters) {
                                      p += unary('param '+$optparameters[i]); 
                                    }
-                                   $$ = label('function_'+$ID, 'jump')+
+                                   $$ = label($ID+"\t# function "+$ID, 'jump')+
                                    p+
                                    $statements.join('')+unary('return', 'jump'); 
                                 }
