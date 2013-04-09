@@ -5,8 +5,9 @@
 
 %{
 
-var symbolTable = {};
+var symbolTables = [{}];
 var scope = 0; 
+var symbolTable = symbolTables[scope];
 
 var myCounter = 0;
 function newLabel(x) {
@@ -116,10 +117,11 @@ decs
 
 dec 
     : DEF functionname  optparameters "{" statements "}" 
-                  { $$ = translateFunction($functionname, 
-                                           $optparameters, 
-                                           $statements); 
-                    scope--;
+                  { 
+                     $$ = translateFunction($functionname, 
+                                            $optparameters, 
+                                            $statements); 
+                     scope--;
                   }
     ;
 
