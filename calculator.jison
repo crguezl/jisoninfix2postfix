@@ -9,6 +9,16 @@ var symbolTables = [{}];
 var scope = 0; 
 var symbolTable = symbolTables[scope];
 
+function findSymbol(x) {
+  var f;
+  var s = scope;
+  do {
+    f = symbolTables[s][x];
+    s--;
+  } while (s >= 0 && !f);
+  return f;
+}
+
 var myCounter = 0;
 function newLabel(x) {
   return String(x)+myCounter++;
@@ -56,7 +66,7 @@ function label(x, cl) {
 }
 
 function functionCall(name, arglist) {
-  var info = symbolTable[name];
+  var info = findSymbol(name);
   if (!info || info.type != 'FUNC' || arglist.length != info.arity) {
     throw new Error("Can't call '"+name+"' ");
   }
@@ -118,10 +128,12 @@ decs
 dec 
     : DEF functionname  optparameters "{" statements "}" 
                   { 
+                     scope--;
+                     symbolTable = symbolTables[scope];
+
                      $$ = translateFunction($functionname, 
                                             $optparameters, 
                                             $statements); 
-                     scope--;
                   }
     ;
 
@@ -132,6 +144,8 @@ functionname
                        throw new Error("Function "+$ID+" defined twice");
                      symbolTable[$ID] = { type: 'FUNC'};
                      scope++;
+                     symbolTables[scope] = {};
+                     symbolTable = symbolTables[scope];
                      $$ = $ID;
                   }
     ;
@@ -143,8 +157,15 @@ optparameters
     ;
         
 parameters
-    : ID                      { $$ = [ $ID ]; }
-    | parameters "," ID       { $$ = $1; $$.push($ID); }
+    : ID                      { 
+                                 $symbolTable[$ID] = { type : 'PARAM' };
+                                 $$ = [ $ID ]; 
+                              }
+    | parameters "," ID       { 
+                                 $symbolTable[$ID] = { type : 'PARAM' };
+                                 $$ = $1; 
+                                 $$.push($ID); 
+                               }
     ;
 
 statements
@@ -203,7 +224,14 @@ e
     | PI
         { $$ = unary(Math.PI);}
     | ID 
-        { $$ = unary($ID);}
+        { 
+          if (symbolTable[$ID] && symbolTable[$ID].type == 'PARAM') {
+            $$ = unary('$'+$ID);
+          }
+          else {
+            $$ = unary($ID);
+          }
+        }
     ;
 
 optarglist 

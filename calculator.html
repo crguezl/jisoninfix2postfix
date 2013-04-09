@@ -16,7 +16,11 @@
         <tr>
           <td>
             <textarea id="input" autofocus cols = "40" rows = "5">
-def f(x) { }
+def f(x) { x + 1 }
+def g(a, b) { a * f(b) }
+c = 3;
+f(1+c);
+g(3, 4)
             </textarea> 
           </td>
           <td class="output">
