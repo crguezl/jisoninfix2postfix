@@ -1,8 +1,12 @@
-/* description: Translates infix expressions to postfix. */
+/* description: 
+   Translates infix expressions to postfix. 
+   Implements functions and function calls
+*/
 
 %{
 
 var symbolTable = {};
+var scope = 0; 
 
 var myCounter = 0;
 function newLabel(x) {
@@ -59,20 +63,14 @@ function functionCall(name, arglist) {
 }
  
 function translateFunction(name, parameters, statements) {
-  var p = '';
-  /*
-   for (i in parameters) {
-     p += unary('param '+$parameters[i]); 
-   }
-  */
-  symbolTable[name] = { 
-    type: 'FUNC', 
+
+  symbolTable[name] = $.extend({}, symbolTable[name], { 
     parameters: parameters, 
     arity: parameters.length,
     statements: statements 
-  };
+  });
+
   return label(name+"\t# function "+name, 'jump')+
-         // p+
          statements.join('')+unary('return', 'jump'); 
 }
 
@@ -117,8 +115,23 @@ decs
     ;
 
 dec 
-    : DEF ID optparameters "{" statements "}" 
-                  { $$ = translateFunction($ID, $optparameters, $statements); }
+    : DEF functionname  optparameters "{" statements "}" 
+                  { $$ = translateFunction($functionname, 
+                                           $optparameters, 
+                                           $statements); 
+                    scope--;
+                  }
+    ;
+
+functionname
+    : ID 
+                  {
+                     if (symbolTable[$ID]) 
+                       throw new Error("Function "+$ID+" defined twice");
+                     symbolTable[$ID] = { type: 'FUNC'};
+                     scope++;
+                     $$ = $ID;
+                  }
     ;
 
 optparameters
@@ -162,33 +175,33 @@ e
     | E "=" e 
         { throw new Error("Can't assign to math constant 'e'"); }
     | e "<=" e
-        {$$ = binary($1,$3, "<=");}
+        { $$ = binary($1,$3, "<=");}
     | e ">=" e
-        {$$ = binary($1,$3, ">=");}
+        { $$ = binary($1,$3, ">=");}
     | e "<" e
-        {$$ = binary($1,$3, "<");}
+        { $$ = binary($1,$3, "<");}
     | e ">" e
-        {$$ = binary($1,$3, ">");}
+        { $$ = binary($1,$3, ">");}
     | e "==" e
-        {$$ = binary($1,$3, "==");}
+        { $$ = binary($1,$3, "==");}
     | e "+" e
-        {$$ = binary($1,$3, "+");}
+        { $$ = binary($1,$3, "+");}
     | e "*" e
-        {$$ = binary($1,$3, "*");}
+        { $$ = binary($1,$3, "*");}
     | e "/" e
-        {$$ = binary($1,$3, "/");}
+        { $$ = binary($1,$3, "/");}
     | "(" e ")"
-        {$$ = $2;}
+        { $$ = $2;}
     | ID "(" optarglist ")"
         { $$ = functionCall($ID, $optarglist); }
     | NUMBER
-        {$$ = unary($NUMBER);}
+        { $$ = unary($NUMBER);}
     | E
-        {$$ = unary(Math.E);}
+        { $$ = unary(Math.E);}
     | PI
-        {$$ = unary(Math.PI);}
+        { $$ = unary(Math.PI);}
     | ID 
-        {$$ = unary($ID);}
+        { $$ = unary($ID);}
     ;
 
 optarglist 

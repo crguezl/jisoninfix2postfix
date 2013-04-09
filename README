@@ -1,5 +1,6 @@
 PL Grado ETSII ULL Lab: Infix to Postfix translator. 
-Includes if the else statements.
+Includes if the else statements, functions and
+function calls.
 
 Simple example in the client using jison.
 Uses jquery. Be sure to modify "main.js" so
