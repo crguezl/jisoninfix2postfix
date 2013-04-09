@@ -9,6 +9,17 @@ var symbolTables = [{}];
 var scope = 0; 
 var symbolTable = symbolTables[scope];
 
+function getFormerScope() {
+   scope--;
+   symbolTable = symbolTables[scope];
+}
+
+function makeNewScope() {
+   scope++;
+   symbolTables[scope] = {};
+   symbolTable = symbolTables[scope];
+}
+
 function findSymbol(x) {
   var f;
   var s = scope;
@@ -67,10 +78,14 @@ function label(x, cl) {
 
 function functionCall(name, arglist) {
   var info = findSymbol(name);
-  if (!info || info.type != 'FUNC' || arglist.length != info.arity) {
+  if (!info || info.type != 'FUNC') {
     throw new Error("Can't call '"+name+"' ");
   }
-  return arglist.join('')+unary("&"+name)+unary("call","jump");
+  else if(arglist.length != info.arity) {
+    throw new Error("Can't call '"+name+"' with "+arglist.length+
+                    " arguments. Expected "+info.arity+" arguments.");
+  }
+  return arglist.join('')+unary(":"+name)+unary("call","jump");
 }
  
 function translateFunction(name, parameters, statements) {
@@ -81,7 +96,7 @@ function translateFunction(name, parameters, statements) {
     statements: statements 
   });
 
-  return label(name+"\t# function "+name, 'jump')+
+  return label(name+"\targs "+parameters.map(function(x) { return ':'+x; }).join(','), 'jump')+
          statements.join('')+unary('return', 'jump'); 
 }
 
@@ -128,8 +143,7 @@ decs
 dec 
     : DEF functionname  optparameters "{" statements "}" 
                   { 
-                     scope--;
-                     symbolTable = symbolTables[scope];
+                     getFormerScope();
 
                      $$ = translateFunction($functionname, 
                                             $optparameters, 
@@ -143,9 +157,9 @@ functionname
                      if (symbolTable[$ID]) 
                        throw new Error("Function "+$ID+" defined twice");
                      symbolTable[$ID] = { type: 'FUNC'};
-                     scope++;
-                     symbolTables[scope] = {};
-                     symbolTable = symbolTables[scope];
+
+                     makeNewScope();
+
                      $$ = $ID;
                   }
     ;
