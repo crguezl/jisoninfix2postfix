@@ -51,7 +51,29 @@ function label(x, cl) {
 }
 
 function functionCall(name, arglist) {
-  return arglist.join('')+unary(name)+unary("call","jump");
+  var info = symbolTable[name];
+  if (!info || info.type != 'FUNC' || arglist.length != info.arity) {
+    throw new Error("Can't call '"+name+"' ");
+  }
+  return arglist.join('')+unary("&"+name)+unary("call","jump");
+}
+ 
+function translateFunction(name, parameters, statements) {
+  var p = '';
+  /*
+   for (i in parameters) {
+     p += unary('param '+$parameters[i]); 
+   }
+  */
+  symbolTable[name] = { 
+    type: 'FUNC', 
+    parameters: parameters, 
+    arity: parameters.length,
+    statements: statements 
+  };
+  return label(name+"\t# function "+name, 'jump')+
+         // p+
+         statements.join('')+unary('return', 'jump'); 
 }
 
 %}
@@ -95,15 +117,8 @@ decs
     ;
 
 dec 
-    : DEF ID optparameters "{" statements "}" { 
-                                   var p = '';
-                                   for (i in $optparameters) {
-                                     p += unary('param '+$optparameters[i]); 
-                                   }
-                                   $$ = label($ID+"\t# function "+$ID, 'jump')+
-                                   p+
-                                   $statements.join('')+unary('return', 'jump'); 
-                                }
+    : DEF ID optparameters "{" statements "}" 
+                  { $$ = translateFunction($ID, $optparameters, $statements); }
     ;
 
 optparameters
