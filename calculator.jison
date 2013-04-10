@@ -85,7 +85,7 @@ function functionCall(name, arglist) {
     throw new Error("Can't call '"+name+"' with "+arglist.length+
                     " arguments. Expected "+info.arity+" arguments.");
   }
-  return arglist.join('')+unary(":"+name)+unary("call","jump");
+  return arglist.join('')+unary("call "+":"+name,"jump");
 }
  
 function translateFunction(name, parameters, statements) {
