@@ -16,5 +16,5 @@ task :tests do
 end
 
 task :clean do
-  sh "rm -f calculator.err   calculator.js calculator.bak"
+  sh "rm -f calculator.err  calculator.output calculator.tab.jison  calculator.js calculator.bak"
 end
