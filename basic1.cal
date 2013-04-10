@@ -1,0 +1,6 @@
+def h(x, y) { x*y + 1 }
+def g(a, b) { a * h(b, 4) }
+c = 3;
+h(1+c, c);
+g(3, 4)
+
