@@ -1,1 +1,2 @@
-c = 2
+def g(x) { x + 1 }
+if c == 2 then d = g(4)
