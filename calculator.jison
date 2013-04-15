@@ -5,19 +5,24 @@
 
 %{
 
-var symbolTables = [{}];
+var symbolTables = [{ name: '', father: null }];
 var scope = 0; 
 var symbolTable = symbolTables[scope];
+
+function getScope() {
+  return scope;
+}
 
 function getFormerScope() {
    scope--;
    symbolTable = symbolTables[scope];
 }
 
-function makeNewScope() {
+function makeNewScope(id) {
    scope++;
-   symbolTables[scope] = {};
+   symbolTable[id].symbolTable = symbolTables[scope] =  { name: id, father: symbolTable };
    symbolTable = symbolTables[scope];
+   return symbolTable;
 }
 
 function findSymbol(x) {
@@ -27,6 +32,7 @@ function findSymbol(x) {
     f = symbolTables[s][x];
     s--;
   } while (s >= 0 && !f);
+  s++;
   return [f, s];
 }
 
@@ -88,19 +94,34 @@ function functionCall(name, arglist) {
     throw new Error("Can't call '"+name+"' with "+arglist.length+
                     " arguments. Expected "+info.arity+" arguments.");
   }
-  return arglist.join('')+unary("call "+":"+name,"jump");
+  //!!!!!!!!!!
+  return arglist.join('')+unary("call "+":"+findFuncName(symbolTable[name].symbolTable),"jump");
 }
  
-function translateFunction(name, parameters, statements) {
+function findFuncName(n) {
+  var f = n;
+  var name = f.name;
+  while (f.name != '') {
+    f = f.father;
+    if (f.name != '') name = f.name+"_"+name;
+  }
+  return name;
+}
+
+function translateFunction(name, parameters, decs, statements) {
 
   symbolTable[name] = $.extend({}, symbolTable[name], { 
+    decs: decs,
     parameters: parameters, 
     arity: parameters.length,
     statements: statements 
   });
 
-  return label(name+"\targs "+parameters.map(function(x) { return ':'+x; }).join(','), 'jump')+
-         statements.join('')+unary('return', 'jump'); 
+  return unary("args "+ parameters.join(','))+
+         decs.join('')+
+         label(findFuncName(symbolTable[name].symbolTable), 'jump')+
+         statements.join('')+
+         unary('return', 'jump'); 
 }
 
 %}
@@ -144,13 +165,35 @@ decs
     ;
 
 dec 
-    : DEF functionname  optparameters "{" statements "}" 
+    : DEF functionname  optparameters "{" decs statements "}" 
                   { 
                      getFormerScope();
 
                      $$ = translateFunction($functionname, 
                                             $optparameters, 
+                                            $decs,
                                             $statements); 
+                  }
+    | VAR varlist ';'   { 
+                           for(var i in $varlist) {
+                             symbolTable[$varlist[i]] = { type:  "VAR" }; 
+                           }
+                           $$ = unary('var '+$varlist.join(',')); 
+                        }
+    ;
+
+varlist 
+    : optinitialization                    { $$ = [ $optinitialization ]; }
+    | optinitialization ',' varlist        { $$ = $1; $$.push($varlist); }
+    ;
+
+optinitialization
+    : ID          {
+                     $$ = [$ID];
+                  }
+    | ID '=' e 
+                  {
+                    $$ = [$ID];
                   }
     ;
 
@@ -159,9 +202,9 @@ functionname
                   {
                      if (symbolTable[$ID]) 
                        throw new Error("Function "+$ID+" defined twice");
-                     symbolTable[$ID] = { type: 'FUNC'};
+                     symbolTable[$ID] = { type: 'FUNC', name: $ID };
 
-                     makeNewScope();
+                     makeNewScope($ID);
 
                      $$ = $ID;
                   }
@@ -209,14 +252,21 @@ e
         { 
            // si ID es FUNC o es un PARAM que pasa?
            // declaralo solo si no ha sido declarado anteriormente
-           var info = findSymbol(name);
-           symbolTable[$ID] = "VAR"; 
-           $$ = binary($3,unary("&"+$1), "=");
+           var info = findSymbol($ID);
+           var s = info[1];
+           info = info[0];
+
+           if (info && info != 'FUNC') { // already declared/initialized
+             $$ = binary($e,unary("&"+$ID+", "+(getScope()-s)), "=");
+           }
+           else { // !info: declare as local variable or 
+                  // info != 'FUNC': was declared as a FUNC
+             symbolTable[$ID] = "VAR"; 
+             $$ = binary($3,unary("&"+$1+", "+(getScope()-s), "="));
+           }
         }
     | PI "=" e 
         { throw new Error("Can't assign to constant 'π'"); }
-    | E "=" e 
-        { throw new Error("Can't assign to math constant 'e'"); }
     | e "<=" e
         { $$ = binary($1,$3, "<=");}
     | e ">=" e
@@ -245,11 +295,16 @@ e
         { $$ = unary(Math.PI);}
     | ID 
         { 
-          if (symbolTable[$ID] && symbolTable[$ID].type == 'PARAM') {
-            $$ = unary('$'+$ID);
+          // what if it is a FUNC or a LOCAL or a GLOBAL? or not defined?
+          var info = findSymbol($ID);
+          var s = info[1];
+          info = info[0];
+
+          if (info && info.type == 'PARAM') {
+            $$ = unary('$'+$ID+", "+(getScope()-s));
           }
           else {
-            $$ = unary($ID);
+            $$ = unary($ID+", "+(getScope()-s));
           }
         }
     ;
