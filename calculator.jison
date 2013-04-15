@@ -27,7 +27,7 @@ function findSymbol(x) {
     f = symbolTables[s][x];
     s--;
   } while (s >= 0 && !f);
-  return f;
+  return [f, s];
 }
 
 var myCounter = 0;
@@ -78,6 +78,9 @@ function label(x, cl) {
 
 function functionCall(name, arglist) {
   var info = findSymbol(name);
+  var s = info[1];
+  info = info[0];
+
   if (!info || info.type != 'FUNC') {
     throw new Error("Can't call '"+name+"' ");
   }
@@ -204,6 +207,9 @@ s
 e
     : ID "=" e
         { 
+           // si ID es FUNC o es un PARAM que pasa?
+           // declaralo solo si no ha sido declarado anteriormente
+           var info = findSymbol(name);
            symbolTable[$ID] = "VAR"; 
            $$ = binary($3,unary("&"+$1), "=");
         }
