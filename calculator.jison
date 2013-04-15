@@ -95,7 +95,7 @@ function functionCall(name, arglist) {
                     " arguments. Expected "+info.arity+" arguments.");
   }
   //!!!!!!!!!!
-  return arglist.join('')+unary("call "+":"+findFuncName(symbolTable[name].symbolTable),"jump");
+  return arglist.join('')+unary("call "+":"+findFuncName(findSymbol(name)[0].symbolTable),"jump");
 }
  
 function findFuncName(n) {
@@ -176,24 +176,26 @@ dec
                   }
     | VAR varlist ';'   { 
                            for(var i in $varlist) {
-                             symbolTable[$varlist[i]] = { type:  "VAR" }; 
+                             var name = $varlist[i][0]; 
+                             var initial_value = $varlist[i][1]; 
+                             symbolTable[name] = { type:  "VAR", initial_value: initial_value }; 
                            }
-                           $$ = unary('var '+$varlist.join(',')); 
+                           $$ = unary('var '+$varlist.map(function(x) { return x[0] }).join(',')); 
                         }
     ;
 
 varlist 
     : optinitialization                    { $$ = [ $optinitialization ]; }
-    | optinitialization ',' varlist        { $$ = $1; $$.push($varlist); }
+    | varlist ',' optinitialization        { $$ = $varlist; $$.push($optinitialization); }
     ;
 
 optinitialization
     : ID          {
-                     $$ = [$ID];
+                     $$ = [$ID, null ];
                   }
     | ID '=' e 
                   {
-                    $$ = [$ID];
+                    $$ = [ $ID, $e ];
                   }
     ;
 
@@ -256,13 +258,17 @@ e
            var s = info[1];
            info = info[0];
 
-           if (info && info != 'FUNC') { // already declared/initialized
+           if (info && info.type === 'VAR') { // already declared/initialized
              $$ = binary($e,unary("&"+$ID+", "+(getScope()-s)), "=");
            }
-           else { // !info: declare as local variable or 
-                  // info != 'FUNC': was declared as a FUNC
-             symbolTable[$ID] = "VAR"; 
-             $$ = binary($3,unary("&"+$1+", "+(getScope()-s), "="));
+           else if (info && info.type === 'PAR') { 
+             $$ = binary($e,unary("&$"+$ID+", "+(getScope()-s)), "=");
+           }
+           else if (info && info.type === 'FUNC') { 
+              throw new Error("Symbol "+$ID+" refers to a function");
+           }
+           else { 
+              throw new Error("Symbol "+$ID+" not declared");
            }
         }
     | PI "=" e 
@@ -300,11 +306,17 @@ e
           var s = info[1];
           info = info[0];
 
-          if (info && info.type == 'PARAM') {
+          if (info && info.type === 'PARAM') {
             $$ = unary('$'+$ID+", "+(getScope()-s));
           }
-          else {
+          else if (info && info.type === 'VAR') {
             $$ = unary($ID+", "+(getScope()-s));
+          }
+          else if (info && info.type === 'FUNC') {
+            throw new Error("Symbol "+$ID+" refers to a function");
+          }
+          else {
+            throw new Error("Symbol "+$ID+" not declared");
           }
         }
     ;

@@ -1,2 +1,6 @@
-def g(x) { x + 1 }
+var c, d;
+def g(x) { 
+  var y = x;
+  x + 1 
+}
 if c == 2 then d = g(4)
