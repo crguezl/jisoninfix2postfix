@@ -121,7 +121,7 @@ function translateFunction(name, parameters, decs, statements) {
   var fullName = findFuncName(mySym);
 
   return unary("args "+ parameters.join(','))+
-         decs.join('')+
+         unary('# '+fullName+': '+decs.join(''))+
          label(fullName, 'jump')+
          ini+
          statements.join('')+
