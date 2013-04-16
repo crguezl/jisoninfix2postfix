@@ -116,12 +116,30 @@ function translateFunction(name, parameters, decs, statements) {
     arity: parameters.length,
     statements: statements 
   });
+  var ini = initializations(symbolTable.vars[name].symbolTable);
 
   return unary("args "+ parameters.join(','))+
          decs.join('')+
          label(findFuncName(symbolTable.vars[name].symbolTable), 'jump')+
+         ini+
          statements.join('')+
          unary('return', 'jump'); 
+}
+
+function initializations(symbolTable) {
+  var decs = $.grep(Object.keys(symbolTable.vars), 
+                     function(x) { 
+                       var entry = symbolTable.vars[x];
+                       return (entry.type === 'VAR') && 
+                              (entry.initial_value != null); 
+                     }
+                   );
+  var inits = decs.map(function(x) { 
+                         var val = symbolTable.vars[x].initial_value;
+                         return binary(val, unary("&"+x+", 0"), "=");
+                       }
+                      );
+  return inits.join('');
 }
 
 %}
@@ -152,10 +170,13 @@ prog
     : decs statements EOF
         { 
           var decs = $decs.join('');
-          var sts = label("main:",'jump')+$statements.join("");
-          console.log(decs);
-          console.log(sts);
-          return decs+sts;
+          var sts = $statements.join("");
+          var ini = initializations(symbolTable);
+
+          return                       decs+
+                 label("main:",'jump')+
+                                       ini+
+                                       sts;
         }
     ;
 
