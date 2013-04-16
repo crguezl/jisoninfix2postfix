@@ -1,2 +1,4 @@
+* divide the declarations in two. On one side functions 
+                           on the other variables?
 * improve error messages (line, etc.)
 * scope using function names

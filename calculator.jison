@@ -65,6 +65,7 @@ function binary(x,y,op) {
 function unary(x, cl) {
   var pr = ''; 
   var po = '';
+  x = x.replace(/\n+$/,'');
   if (cl) {
     pr = "<span class='"+cl+"'>";
     po = "</span>";
@@ -119,9 +120,11 @@ function translateFunction(name, parameters, decs, statements) {
   var mySym = symbolTable.vars[name].symbolTable;
   var ini = initializations(mySym);
   var fullName = findFuncName(mySym);
+  var args = (args != '')? unary('# '+fullName+': '+"args "+ parameters.join(',')) : '';
+  var locals = (decs != '')? unary('# '+fullName+': '+decs.join('')) : '';
 
-  return unary("args "+ parameters.join(','))+
-         unary('# '+fullName+': '+decs.join(''))+
+  return args+
+         locals+
          label(fullName, 'jump')+
          ini+
          statements.join('')+
@@ -171,11 +174,11 @@ function initializations(symbolTable) {
 prog
     : decs statements EOF
         { 
-          var decs = $decs.join('');
+          var locals = ($decs != '')? unary('# global: '+$decs.join('')) : '';
           var sts = $statements.join("");
           var ini = initializations(symbolTable);
 
-          return                       decs+
+          return                       locals+
                  label("main:",'jump')+
                                        ini+
                                        sts;
