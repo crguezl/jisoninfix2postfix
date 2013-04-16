@@ -5,7 +5,7 @@
 
 %{
 
-var symbolTables = [{ name: '', father: null }];
+var symbolTables = [{ name: '', father: null, vars: {} }];
 var scope = 0; 
 var symbolTable = symbolTables[scope];
 
@@ -20,7 +20,7 @@ function getFormerScope() {
 
 function makeNewScope(id) {
    scope++;
-   symbolTable[id].symbolTable = symbolTables[scope] =  { name: id, father: symbolTable };
+   symbolTable.vars[id].symbolTable = symbolTables[scope] =  { name: id, father: symbolTable, vars: {} };
    symbolTable = symbolTables[scope];
    return symbolTable;
 }
@@ -29,7 +29,7 @@ function findSymbol(x) {
   var f;
   var s = scope;
   do {
-    f = symbolTables[s][x];
+    f = symbolTables[s].vars[x];
     s--;
   } while (s >= 0 && !f);
   s++;
@@ -103,14 +103,14 @@ function findFuncName(n) {
   var name = f.name;
   while (f.name != '') {
     f = f.father;
-    if (f.name != '') name = f.name+"_"+name;
+    if (f.name != '') name = f.name+"."+name;
   }
   return name;
 }
 
 function translateFunction(name, parameters, decs, statements) {
 
-  symbolTable[name] = $.extend({}, symbolTable[name], { 
+  symbolTable.vars[name] = $.extend({}, symbolTable.vars[name], { 
     decs: decs,
     parameters: parameters, 
     arity: parameters.length,
@@ -119,7 +119,7 @@ function translateFunction(name, parameters, decs, statements) {
 
   return unary("args "+ parameters.join(','))+
          decs.join('')+
-         label(findFuncName(symbolTable[name].symbolTable), 'jump')+
+         label(findFuncName(symbolTable.vars[name].symbolTable), 'jump')+
          statements.join('')+
          unary('return', 'jump'); 
 }
@@ -178,7 +178,7 @@ dec
                            for(var i in $varlist) {
                              var name = $varlist[i][0]; 
                              var initial_value = $varlist[i][1]; 
-                             symbolTable[name] = { type:  "VAR", initial_value: initial_value }; 
+                             symbolTable.vars[name] = { type:  "VAR", initial_value: initial_value }; 
                            }
                            $$ = unary('var '+$varlist.map(function(x) { return x[0] }).join(',')); 
                         }
@@ -202,9 +202,9 @@ optinitialization
 functionname
     : ID 
                   {
-                     if (symbolTable[$ID]) 
+                     if (symbolTable.vars[$ID]) 
                        throw new Error("Function "+$ID+" defined twice");
-                     symbolTable[$ID] = { type: 'FUNC', name: $ID };
+                     symbolTable.vars[$ID] = { type: 'FUNC', name: $ID };
 
                      makeNewScope($ID);
 
@@ -220,11 +220,11 @@ optparameters
         
 parameters
     : ID                      { 
-                                 $symbolTable[$ID] = { type : 'PARAM' };
+                                 $symbolTable.vars[$ID] = { type : 'PARAM' };
                                  $$ = [ $ID ]; 
                               }
     | parameters "," ID       { 
-                                 $symbolTable[$ID] = { type : 'PARAM' };
+                                 $symbolTable.vars[$ID] = { type : 'PARAM' };
                                  $$ = $1; 
                                  $$.push($ID); 
                                }

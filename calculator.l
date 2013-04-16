@@ -15,7 +15,7 @@ function idORrw(x) {
 
 \s+|\#.*                         { /* skip whitespace and comments */ }
 \b\d+("."\d*)?([eE][-+]?\d+)?\b  return 'NUMBER'
-\b[A-Za-z]\w*\b                  return idORrw(yytext)
+\b[A-Za-z_]\w*\b                 return idORrw(yytext)
 [<>=!][=]                         {
                                    return yytext; 
 /* exact string patterns must be placed in quotes
