@@ -1,4 +1,2 @@
-* initializations
+* improve error messages (line, etc.)
 * scope using function names
-* symbolTable: put the variables inside a container "vars" to differentiate
-  from attributes as "name"

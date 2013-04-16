@@ -1,6 +1,6 @@
 /* description: 
    Translates infix expressions to postfix. 
-   Implements functions and function calls
+   Implements functions, function calls and scope analysis
 */
 
 %{
@@ -116,11 +116,13 @@ function translateFunction(name, parameters, decs, statements) {
     arity: parameters.length,
     statements: statements 
   });
-  var ini = initializations(symbolTable.vars[name].symbolTable);
+  var mySym = symbolTable.vars[name].symbolTable;
+  var ini = initializations(mySym);
+  var fullName = findFuncName(mySym);
 
   return unary("args "+ parameters.join(','))+
          decs.join('')+
-         label(findFuncName(symbolTable.vars[name].symbolTable), 'jump')+
+         label(fullName, 'jump')+
          ini+
          statements.join('')+
          unary('return', 'jump'); 
@@ -196,12 +198,7 @@ dec
                                             $statements); 
                   }
     | VAR varlist ';'   { 
-                           for(var i in $varlist) {
-                             var name = $varlist[i][0]; 
-                             var initial_value = $varlist[i][1]; 
-                             symbolTable.vars[name] = { type:  "VAR", initial_value: initial_value }; 
-                           }
-                           $$ = unary('var '+$varlist.map(function(x) { return x[0] }).join(',')); 
+                           $$ = unary('var '+$varlist.join(',')); 
                         }
     ;
 
@@ -212,11 +209,13 @@ varlist
 
 optinitialization
     : ID          {
-                     $$ = [$ID, null ];
+                     symbolTable.vars[$ID] = { type:  "VAR", initial_value: null }; 
+                     $$ = $ID;
                   }
     | ID '=' e 
                   {
-                    $$ = [ $ID, $e ];
+                     symbolTable.vars[$ID] = { type:  "VAR", initial_value: $e }; 
+                     $$ = $ID;
                   }
     ;
 
@@ -273,13 +272,11 @@ s
 e
     : ID "=" e
         { 
-           // si ID es FUNC o es un PARAM que pasa?
-           // declaralo solo si no ha sido declarado anteriormente
            var info = findSymbol($ID);
            var s = info[1];
            info = info[0];
 
-           if (info && info.type === 'VAR') { // already declared/initialized
+           if (info && info.type === 'VAR') { 
              $$ = binary($e,unary("&"+$ID+", "+(getScope()-s)), "=");
            }
            else if (info && info.type === 'PAR') { 
