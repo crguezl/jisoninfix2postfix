@@ -95,8 +95,9 @@ function functionCall(name, arglist) {
     throw new Error("Can't call '"+name+"' with "+arglist.length+
                     " arguments. Expected "+info.arity+" arguments.");
   }
-  //!!!!!!!!!!
-  return arglist.join('')+unary("call "+":"+findFuncName(findSymbol(name)[0].symbolTable),"jump");
+  
+  return arglist.join('')+
+         unary("call "+":"+findFuncName(findSymbol(name)[0].symbolTable),"jump");
 }
  
 function findFuncName(n) {
@@ -120,7 +121,8 @@ function translateFunction(name, parameters, decs, statements) {
   var mySym = symbolTable.vars[name].symbolTable;
   var ini = initializations(mySym);
   var fullName = findFuncName(mySym);
-  var args = (args != '')? unary('# '+fullName+': '+"args "+ parameters.join(',')) : '';
+  var args = (args != '')? unary('# '+fullName+': '+"args "+ parameters.join(',')) : 
+                           '';
   var locals = (decs != '')? unary('# '+fullName+': '+decs.join('')) : '';
 
   return args+
@@ -174,7 +176,7 @@ function initializations(symbolTable) {
 prog
     : decs statements EOF
         { 
-          var locals = ($decs != '')? unary('# global: '+$decs.join('')) : '';
+          var locals = ($decs.length != 0)? unary('# global: '+$decs.join('')) : '';
           var sts = $statements.join("");
           var ini = initializations(symbolTable);
 

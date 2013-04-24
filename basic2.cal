@@ -1,4 +1,4 @@
-var c, d;
+var c = 2, d;
 def g(x) { 
   var y = x;
   x + 1 
