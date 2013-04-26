@@ -123,7 +123,8 @@ function translateFunction(name, parameters, decs, statements) {
   var fullName = findFuncName(mySym);
   var args = (args != '')? unary('# '+fullName+': '+"args "+ parameters.join(',')) : 
                            '';
-  var locals = (decs != '')? unary('# '+fullName+': '+decs.join('')) : '';
+  var locals = (decs != '')? unary('# '+fullName+': '+decs.join('')) : 
+                             '';
 
   return args+
          locals+
@@ -176,7 +177,8 @@ function initializations(symbolTable) {
 prog
     : decs statements EOF
         { 
-          var locals = ($decs.length != 0)? unary('# global: '+$decs.join('')) : '';
+          var locals = ($decs.length != 0)? unary('# global: '+$decs.join('')) : 
+                                            '';
           var sts = $statements.join("");
           var ini = initializations(symbolTable);
 
