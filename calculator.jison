@@ -247,11 +247,11 @@ optparameters
         
 parameters
     : ID                      { 
-                                 $symbolTable.vars[$ID] = { type : 'PARAM' };
+                                 symbolTable.vars[$ID] = { type : 'PARAM' };
                                  $$ = [ $ID ]; 
                               }
     | parameters "," ID       { 
-                                 $symbolTable.vars[$ID] = { type : 'PARAM' };
+                                 symbolTable.vars[$ID] = { type : 'PARAM' };
                                  $$ = $1; 
                                  $$.push($ID); 
                                }
