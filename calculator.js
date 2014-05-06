@@ -471,7 +471,7 @@ function functionCall(name, arglist) {
   }
   
   return arglist.join('')+
-         unary("call "+":"+findFuncName(findSymbol(name)[0].symbolTable),"jump");
+         unary("call "+":"+findFuncName(info.symbolTable),"jump");
 }
  
 function findFuncName(n) {

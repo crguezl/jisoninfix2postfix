@@ -8,6 +8,11 @@ task :testf do
   sh " open -a firefox test/test.html"
 end
 
+desc "open index.html"
+task :open do
+  sh "open index.html"
+end
+
 task :tests do
   sh " open -a safari test/test.html"
 end
